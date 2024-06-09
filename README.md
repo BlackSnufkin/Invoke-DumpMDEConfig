@@ -6,6 +6,9 @@
 ## Usage
 
 ```powershell
+# To run the script and output the results in list format:
+Invoke-DumpMDEConfig
+
 # To run the script and output the results in table format:
 Invoke-DumpMDEConfig -TableOutput
 
