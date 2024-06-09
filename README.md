@@ -20,4 +20,4 @@ Invoke-DumpMDEConfig -TableOutput -TableOutputFile "CustomFile.txt"
 ```
 ## Acknowledgements 
 
-* Thanks to VakninHai (https://x.com/VakninHai/status/1796628601535652289)
+* Thanks to [VakninHai](https://x.com/VakninHai/status/1796628601535652289)
