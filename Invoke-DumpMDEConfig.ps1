@@ -205,14 +205,14 @@ function Query-ProtectionHistory {
 
     try {
         $logName = "Microsoft-Windows-Windows Defender/Operational"
-        $query = "*[System[(EventID=1117 or EventID=1116)]]"
+        $query = "*[System[(EventID=1117)]]"
         $events = Get-WinEvent -LogName $logName -FilterXPath $query
 
         $protectionHistory = foreach ($event in $events) {
             $message = $event.ToXml()
             $eventId = $event.Id
             
-            if ($eventId -eq 1116 -or $eventId -eq 1117) {
+            if ($eventId -eq 1117) {
                 $threatName = Select-String -InputObject $message -Pattern "<Data Name='Threat Name'>(.+?)</Data>" | ForEach-Object { $_.Matches.Groups[1].Value }
                 $severityName = Select-String -InputObject $message -Pattern "<Data Name='Severity Name'>(.+?)</Data>" | ForEach-Object { $_.Matches.Groups[1].Value }
                 $categoryName = Select-String -InputObject $message -Pattern "<Data Name='Category Name'>(.+?)</Data>" | ForEach-Object { $_.Matches.Groups[1].Value }
