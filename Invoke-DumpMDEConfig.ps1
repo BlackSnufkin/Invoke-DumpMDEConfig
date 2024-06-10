@@ -314,7 +314,7 @@ function Query-FirewallExclusions {
     )
 
     $logName = "Microsoft-Windows-Windows Firewall With Advanced Security/Firewall"
-    $query = "*[System[(EventID=2097)]]"
+    $query = "*[System[(EventID=2099 or EventID=2097)]]"
     $events = Get-WinEvent -LogName $logName -FilterXPath $query
 
     $firewallExclusions = foreach ($event in $events) {
