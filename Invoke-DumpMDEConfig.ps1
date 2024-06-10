@@ -19,7 +19,11 @@ function Invoke-DumpMDEConfig {
 
     Write-Host "[+] Dumping Exploit Guard Protection History"
     Query-ExploitGuardProtectionHistory -TableOutput:$TableOutput -TableOutputFile:$TableOutputFile -CSVOutput:$CSVOutput
-    
+ 
+
+    Write-Host "[+] Dumping Windows Firewall Exclusions"
+    Query-FirewallExclusions -TableOutput:$TableOutput -TableOutputFile:$TableOutputFile -CSVOutput:$CSVOutput
+
     if ($TableOutput) {
         Write-Host "[+] Defender Config Dumped to $TableOutputFile"
     }
@@ -298,5 +302,46 @@ function Query-ExploitGuardProtectionHistory {
         }
     } catch {
         Write-Error "Failed to query exploit guard protection history: $_"
+    }
+}
+
+
+function Query-FirewallExclusions {
+    param (
+        [switch]$TableOutput,
+        [string]$TableOutputFile = "FirewallExclusions.txt",
+        [switch]$CSVOutput
+    )
+
+    $logName = "Microsoft-Windows-Windows Firewall With Advanced Security/Firewall"
+    $query = "*[System[(EventID=2099)]]"
+    $events = Get-WinEvent -LogName $logName -FilterXPath $query
+
+    $firewallExclusions = foreach ($event in $events) {
+        $message = $event.Message
+        $action = [regex]::Match($message, 'Action:\s*(.+)').Groups[1].Value.Trim()
+        if ($action -eq "Allow") {
+            [PSCustomObject]@{
+                RuleID = [regex]::Match($message, 'Rule ID:\s*(.+)').Groups[1].Value.Trim()
+                RuleName = [regex]::Match($message, 'Rule Name:\s*(.+)').Groups[1].Value.Trim()
+                ApplicationPath = [regex]::Match($message, 'Application Path:\s*(.+)').Groups[1].Value.Trim()
+                Direction = [regex]::Match($message, 'Direction:\s*(.+)').Groups[1].Value.Trim()
+                Action = $action
+                TimeCreated = $event.TimeCreated
+            }
+        }
+    }
+
+    if ($TableOutput) {
+         $subject = "[+] Firewall Exclusions:"
+         $subject | Out-File $TableOutputFile -Append
+        $firewallExclusions | Format-Table -AutoSize  | Out-String -Width 4096 | Out-File $TableOutputFile -Append
+    } elseif ($CSVOutput) {
+        Write-Host "[+] Dumped Firewall Exclusions to FirewallExclusions.csv"
+        $firewallExclusions | Export-Csv -Path "FirewallExclusions.csv" -NoTypeInformation
+    } else {
+        foreach ($exclusion in $firewallExclusions) {
+            $exclusion | Format-List
+        }
     }
 }
